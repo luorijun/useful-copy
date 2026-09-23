@@ -36,7 +36,7 @@ export default function Home() {
   function pickup() {
     const code = normalizeAccessCode(pickupCode());
     if (!/^[a-z0-9]{6}$/.test(code)) return toast.error("请输入 6 位访问码");
-    location.href = `/pickup/${encodeURIComponent(code)}`;
+    location.href = `/${encodeURIComponent(code)}`;
   }
   async function copyCode(code: string) {
     try {

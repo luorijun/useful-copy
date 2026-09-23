@@ -2,12 +2,17 @@ import Home from "./pages/Home";
 import Pickup from "./pages/Pickup";
 
 function pickupId(pathname: string) {
-  const match = pathname.match(/^\/pickup\/([^/]+)\/?$/u);
-  return match ? decodeURIComponent(match[1]) : null;
+  const match = pathname.match(/^\/([^/]+)\/?$/u);
+  if (!match) return null;
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return null;
+  }
 }
 
 export default function App() {
-  const pathname = decodeURI(window.location.pathname);
+  const pathname = window.location.pathname;
   const id = pickupId(pathname);
 
   if (id) return <Pickup id={id} />;
