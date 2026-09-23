@@ -2,7 +2,7 @@ import Home from "./pages/Home";
 import Pickup from "./pages/Pickup";
 
 function pickupId(pathname: string) {
-  const match = pathname.match(/^\/(?:pickup|取件)\/([^/]+)\/?$/u);
+  const match = pathname.match(/^\/pickup\/([^/]+)\/?$/u);
   return match ? decodeURIComponent(match[1]) : null;
 }
 

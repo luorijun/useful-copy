@@ -11,12 +11,12 @@ export default {
 
     const detailMatch = pathname.match(/^\/api\/drops\/([^/]+)$/);
     if (request.method === "POST" && detailMatch) {
-      return getDrop(request, env, decodeURIComponent(detailMatch[1]));
+      return getDrop(env, decodeURIComponent(detailMatch[1]));
     }
 
     const fileMatch = pathname.match(/^\/api\/drops\/([^/]+)\/file$/);
     if (request.method === "POST" && fileMatch) {
-      return downloadDrop(request, env, decodeURIComponent(fileMatch[1]));
+      return downloadDrop(env, decodeURIComponent(fileMatch[1]));
     }
 
     return Response.json({ error: "Not found" }, { status: 404 });

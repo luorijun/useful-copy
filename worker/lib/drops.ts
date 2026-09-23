@@ -8,14 +8,14 @@ export type DropRow = {
   file_name: string | null;
   mime_type: string | null;
   file_size: number | null;
-  access_salt: string | null;
-  access_hash: string | null;
   expires_at: number;
 };
 
 export async function findDrop(env: Cloudflare.Env, id: string) {
-  return env.DB.prepare("SELECT * FROM drops WHERE id=? OR id=?")
-    .bind(normalizeAccessCode(id), id)
+  const code = normalizeAccessCode(id);
+  if (!/^[a-z0-9]{6}$/.test(code)) return null;
+  return env.DB.prepare("SELECT * FROM drops WHERE id=?")
+    .bind(code)
     .first<DropRow>();
 }
 

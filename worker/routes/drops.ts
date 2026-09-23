@@ -1,8 +1,4 @@
-import {
-  accessCodeFromSequence,
-  hashCode,
-  safeName,
-} from "../../lib/drop-security";
+import { accessCodeFromSequence, safeName } from "../../lib/drop-security";
 import { findDrop, removeDrop } from "../lib/drops";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -71,7 +67,7 @@ export async function createDrop(request: Request, env: Cloudflare.Env) {
 
     try {
       await env.DB.prepare(
-        "INSERT INTO drops (id,kind,text_content,object_key,file_name,mime_type,file_size,access_salt,access_hash,created_at,expires_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+        "INSERT INTO drops (id,kind,text_content,object_key,file_name,mime_type,file_size,created_at,expires_at) VALUES (?,?,?,?,?,?,?,?,?)",
       )
         .bind(
           id,
@@ -81,8 +77,6 @@ export async function createDrop(request: Request, env: Cloudflare.Env) {
           fileName,
           mimeType,
           fileSize,
-          null,
-          null,
           now,
           expiresAt,
         )
@@ -92,7 +86,7 @@ export async function createDrop(request: Request, env: Cloudflare.Env) {
       throw error;
     }
 
-    return Response.json({ id, accessCode: id, expiresAt }, { status: 201 });
+    return Response.json({ accessCode: id, expiresAt }, { status: 201 });
   } catch (error) {
     console.error(error);
     return Response.json(
@@ -102,11 +96,7 @@ export async function createDrop(request: Request, env: Cloudflare.Env) {
   }
 }
 
-export async function getDrop(
-  request: Request,
-  env: Cloudflare.Env,
-  id: string,
-) {
+export async function getDrop(env: Cloudflare.Env, id: string) {
   try {
     const row = await findDrop(env, id);
     if (!row) {
@@ -121,19 +111,6 @@ export async function getDrop(
       return Response.json({ error: "寄存内容已到期销毁" }, { status: 410 });
     }
 
-    if (row.access_hash) {
-      const { code = "" } = (await request.json()) as { code?: string };
-      if (
-        !code ||
-        (await hashCode(code, String(row.access_salt))) !== row.access_hash
-      ) {
-        return Response.json(
-          { error: "访问码不正确", protected: true },
-          { status: 403 },
-        );
-      }
-    }
-
     return Response.json({
       id: row.id,
       kind: row.kind,
@@ -142,7 +119,6 @@ export async function getDrop(
       fileSize: row.file_size,
       mimeType: row.mime_type,
       expiresAt: row.expires_at,
-      protected: Boolean(row.access_hash),
     });
   } catch (error) {
     console.error(error);
@@ -150,11 +126,7 @@ export async function getDrop(
   }
 }
 
-export async function downloadDrop(
-  request: Request,
-  env: Cloudflare.Env,
-  id: string,
-) {
+export async function downloadDrop(env: Cloudflare.Env, id: string) {
   try {
     const row = await findDrop(env, id);
     if (!row || row.kind !== "file") {
@@ -164,14 +136,6 @@ export async function downloadDrop(
     if (Number(row.expires_at) <= Date.now()) {
       await removeDrop(env, row);
       return new Response("文件已销毁", { status: 410 });
-    }
-
-    const { code = "" } = (await request.json()) as { code?: string };
-    if (
-      row.access_hash &&
-      (await hashCode(code, String(row.access_salt))) !== row.access_hash
-    ) {
-      return new Response("访问码不正确", { status: 403 });
     }
 
     const object = await env.BUCKET.get(String(row.object_key));

@@ -3,7 +3,7 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import tseslint from "typescript-eslint";
 
 export default defineConfig([
-  globalIgnores(["dist/**", "node_modules/**", "vendor/**"]),
+  globalIgnores(["dist/**", "node_modules/**", ".wrangler/**", "cloudflare-env.d.ts"]),
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {

@@ -8,8 +8,6 @@ export const drops = sqliteTable("drops", {
   fileName: text("file_name"),
   mimeType: text("mime_type"),
   fileSize: integer("file_size"),
-  accessSalt: text("access_salt"),
-  accessHash: text("access_hash"),
   createdAt: integer("created_at").notNull(),
   expiresAt: integer("expires_at").notNull(),
 });

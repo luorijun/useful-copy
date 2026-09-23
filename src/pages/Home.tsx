@@ -24,10 +24,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { toast, Toaster } from "sonner";
+import { normalizeAccessCode } from "@/lib/drop-security";
 
 type CreatedDrop = { accessCode: string; expiresAt: number };
-const normalizeCode = (code: string) =>
-  code.toLowerCase().replace(/[^0-9a-z]/g, "");
 
 export default function Home() {
   const [mode, setMode] = useState("pickup"),
@@ -40,12 +39,8 @@ export default function Home() {
     [created, setCreated] = useState<CreatedDrop | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   function pickup() {
-    const raw = pickupCode.toLowerCase().replace(/[^0-9a-z-]/g, "");
-    const code = /^[a-z0-9]{6}$/.test(raw) ? normalizeCode(raw) : raw;
-    if (
-      !/^[a-z0-9]{6}$/.test(code) &&
-      !/^(?=.{6,7}$)[0-9a-z]*-[0-9a-z]*$/.test(code)
-    )
+    const code = normalizeAccessCode(pickupCode);
+    if (!/^[a-z0-9]{6}$/.test(code))
       return toast.error("请输入 6 位访问码");
     location.href = `/pickup/${encodeURIComponent(code)}`;
   }
@@ -161,12 +156,8 @@ export default function Home() {
               <Input
                 id="pickup-code"
                 value={pickupCode}
-                maxLength={7}
-                onChange={(e) =>
-                  setPickupCode(
-                    e.target.value.toLowerCase().replace(/[^0-9a-z-]/g, ""),
-                  )
-                }
+                maxLength={6}
+                onChange={(e) => setPickupCode(e.target.value.toLowerCase())}
                 onKeyDown={(e) => e.key === "Enter" && pickup()}
                 placeholder="例如 k7m2q8"
                 autoComplete="off"

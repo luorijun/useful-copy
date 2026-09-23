@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   ArrowLeft,
-  Check,
   Clock3,
   Copy,
   Download,
@@ -10,7 +9,6 @@ import {
   LockKeyhole,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { toast, Toaster } from "sonner";
 type Drop = {
   kind: "text" | "file";
@@ -18,44 +16,36 @@ type Drop = {
   fileName?: string;
   fileSize?: number;
   expiresAt: number;
-  protected: boolean;
 };
 export default function Pickup({ id }: { id: string }) {
-  const [code, setCode] = useState(""),
-    [drop, setDrop] = useState<Drop | null>(null),
+  const [drop, setDrop] = useState<Drop | null>(null),
     [error, setError] = useState(""),
     [loading, setLoading] = useState(true),
     [loadedAt, setLoadedAt] = useState(0);
-  const open = useCallback(async (dropId: string, accessCode: string) => {
+  const open = useCallback(async (dropId: string) => {
     setLoading(true);
     setError("");
     try {
       const r = await fetch(`/api/drops/${dropId}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: accessCode }),
       });
       const d = (await r.json()) as Drop & { error?: string };
-      if (!r.ok)
-        throw Object.assign(new Error(d.error), { protected: d.protected });
+      if (!r.ok) throw new Error(d.error);
       setDrop(d);
       setLoadedAt(Date.now());
     } catch (e: unknown) {
-      const failure = e as Error & { protected?: boolean };
-      setError(failure.message || "无法取件");
-      if (!failure.protected) setDrop(null);
+      setError(e instanceof Error ? e.message : "无法取件");
+      setDrop(null);
     } finally {
       setLoading(false);
     }
   }, []);
   useEffect(() => {
-    void open(id, "");
+    void open(id);
   }, [id, open]);
   async function download() {
     const r = await fetch(`/api/drops/${id}/file`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code }),
     });
     if (!r.ok) return toast.error(await r.text());
     const b = await r.blob(),
@@ -140,30 +130,8 @@ export default function Pickup({ id }: { id: string }) {
               <span className="lock-orbit">
                 <KeyRound size={25} />
               </span>
-              <h2>
-                {error.includes("访问码") ? "此内容受访问码保护" : "无法取件"}
-              </h2>
-              <p>
-                {error.includes("访问码")
-                  ? "输入寄存者提供的访问码后查看内容。"
-                  : error}
-              </p>
-              {error.includes("访问码") && (
-                <>
-                  <Input
-                    type="password"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && open(id, code)}
-                    placeholder="请输入访问码"
-                    autoFocus
-                  />
-                  <Button className="w-full" onClick={() => open(id, code)}>
-                    <Check size={16} />
-                    确认访问
-                  </Button>
-                </>
-              )}
+              <h2>无法取件</h2>
+              <p>{error}</p>
             </div>
           )}
         </div>

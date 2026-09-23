@@ -1,3 +1,8 @@
+CREATE TABLE `access_code_sequence` (
+	`name` text PRIMARY KEY NOT NULL,
+	`next_value` integer NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE `drops` (
 	`id` text PRIMARY KEY NOT NULL,
 	`kind` text NOT NULL,
@@ -6,8 +11,6 @@ CREATE TABLE `drops` (
 	`file_name` text,
 	`mime_type` text,
 	`file_size` integer,
-	`access_salt` text,
-	`access_hash` text,
 	`created_at` integer NOT NULL,
 	`expires_at` integer NOT NULL
 );

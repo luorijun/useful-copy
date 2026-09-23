@@ -11,7 +11,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "skipLibCheck": true,
-    "types": ["node", "@cloudflare/workers-types"],
+    "types": ["bun"],
     "paths": {
       "@/*": ["./*"]
     }
@@ -22,10 +22,10 @@
     "worker/**/*.ts",
     "components/**/*.ts",
     "components/**/*.tsx",
-    "hooks/**/*.ts",
     "lib/**/*.ts",
     "db/**/*.ts",
     "vite.config.ts",
+    "drizzle.config.ts",
     "cloudflare-env.d.ts"
   ],
   "exclude": ["node_modules", "dist"]

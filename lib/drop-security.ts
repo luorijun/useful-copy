@@ -1,11 +1,3 @@
-const encoder = new TextEncoder();
-const hex = (bytes: Uint8Array) =>
-  Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
-export function randomHex(size = 16) {
-  const b = new Uint8Array(size);
-  crypto.getRandomValues(b);
-  return hex(b);
-}
 const RADIX = 36,
   HALF = RADIX ** 3,
   SPACE = RADIX ** 6;
@@ -29,27 +21,7 @@ export function accessCodeFromSequence(sequence: number) {
   return code;
 }
 export function normalizeAccessCode(code: string) {
-  return code.toLowerCase().replace(/[^0-9a-z]/g, "");
-}
-export async function hashCode(code: string, salt: string) {
-  const key = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(code),
-    "PBKDF2",
-    false,
-    ["deriveBits"],
-  );
-  const bits = await crypto.subtle.deriveBits(
-    {
-      name: "PBKDF2",
-      salt: encoder.encode(salt),
-      iterations: 100000,
-      hash: "SHA-256",
-    },
-    key,
-    256,
-  );
-  return hex(new Uint8Array(bits));
+  return code.trim().toLowerCase();
 }
 export function safeName(name: string) {
   return name.replace(/[\r\n"\\]/g, "_").slice(0, 180) || "download";

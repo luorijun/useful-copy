@@ -1,83 +1,85 @@
 # useful-copy · 临时寄存
 
-通过 6 位访问码临时分享文本和文件。前端是 React + Vite 单页应用，API 直接运行在 Cloudflare Worker；D1 保存文本和元数据，R2 保存文件。
+通过六位访问码临时分享文本和文件。前端使用 React + Vite，API 运行在 Cloudflare Workers；D1 保存文本和元数据，R2 保存文件。
 
-## 技术栈
+## 环境
 
-- React 19 + Vite
-- Cloudflare Workers + `@cloudflare/vite-plugin`
-- Cloudflare D1 + R2
-- TypeScript + Tailwind CSS
-- Drizzle schema / migrations
-
-项目不再依赖 Next.js、Vinext、React Server Components 或 OpenAI Sites 运行时。
+- Bun 1.4.2 或更新版本；项目基准版本为 1.4.2。
+- 本地工具通过 Bun 运行，Worker 通过 Cloudflare 的 workerd 运行。
 
 ## 本地开发
 
-需要 Node.js >= 22.13.0 和 npm。
-
 ```sh
-npm ci
-npm run cf:typegen
+bun install --frozen-lockfile
+bun run cf:typegen
+bun run db:migrate
+bun run dev
 ```
 
-首次创建本地 D1 后，按顺序应用迁移：
+首页为 `/`，取件页为 `/pickup/:id`。访问码由六位字母和数字组成，不区分大小写。
+
+## 检查与构建
 
 ```sh
-npx wrangler d1 execute DB --local --file drizzle/0000_vengeful_hellion.sql
-npx wrangler d1 execute DB --local --file drizzle/0001_smart_rhodey.sql
+bun run typecheck
+bun run lint
+bun run build
+bun run preview
 ```
 
-启动开发服务器：
+`preview` 预览已生成的构建结果，需先执行 `build`。
+
+## 数据库
+
+在 `db/schema.ts` 修改数据结构，然后生成并应用迁移：
 
 ```sh
-npm run dev
+bun run db:generate --name describe_change
+bun run db:migrate
 ```
 
-质量检查：
+迁移 SQL 和 Drizzle 元数据位于 `drizzle/`，应一起提交。`db:migrate` 只操作本地数据库；生产数据库使用 `db:migrate:remote`。
+
+## 部署
+
+创建 Cloudflare 资源：
 
 ```sh
-npm run typecheck
-npm run lint
-npm run build
+bun --bun wrangler login
+bun --bun wrangler d1 create useful-copy
+bun --bun wrangler r2 bucket create useful-copy
 ```
 
-## Cloudflare 资源
-
-`wrangler.jsonc` 声明两个 Worker bindings：
-
-- `DB`: D1 database
-- `BUCKET`: R2 bucket
-
-仓库中的 D1 `database_id` 是占位值。首次部署前创建生产资源并把真实 ID 写入 `wrangler.jsonc`：
+将真实的 D1 `database_id` 填入 `wrangler.jsonc`，确认 `DB` 和 `BUCKET` 绑定对应目标资源，然后执行：
 
 ```sh
-npx wrangler d1 create useful-copy
-npx wrangler r2 bucket create useful-copy
+bun run cf:typegen
+bun run db:migrate:remote
+bun run deploy
 ```
 
-然后对生产 D1 应用 `drizzle/` 中的迁移并部署：
+部署命令先构建，再上传 Worker 和静态资源。
 
-```sh
-npm run deploy
-```
-
-## 结构
+## 项目结构
 
 ```text
-src/                 React 客户端
-worker/              Cloudflare Worker API
-components/          UI 组件
-lib/                 跨运行时业务工具
-db/ + drizzle/       数据模型与迁移
+src/                 React 页面与样式
+worker/              Worker API 与存储操作
+components/ui/       页面使用的 UI 组件
+lib/                 访问码与通用工具
+db/                  数据模型
+drizzle/             数据库迁移
+cloudflare-env.d.ts   Wrangler 生成的绑定与运行时类型
 wrangler.jsonc       Worker、D1、R2、静态资源配置
-vite.config.ts       Vite + React + Cloudflare
+vite.config.ts       Vite、React、Cloudflare 配置
 ```
 
-前端路由目前只有首页和取件页，因此直接按 pathname 分发，没有引入额外 Router 依赖。Cloudflare 静态资源配置使用 SPA fallback，`/pickup/:id` 和 `/取件/:id` 均可直接访问。
+变更 Worker 配置后执行 `bun run cf:typegen`，提交更新后的类型文件。
 
 ## 数据生命周期
 
-过期记录在查询或下载时变为不可访问，并尝试删除 D1 记录及对应 R2 对象。当前没有定时清理任务；从未再次访问的过期数据不会保证在到期瞬间物理删除。生产环境如需要严格清理，可增加 Cron Trigger 和 R2 lifecycle policy。
+文本最多 100,000 字，单个文件最多 10 MB，可选择保存 1、3、6、12 或 24 小时。
 
-访问码用于便捷分享，不是强认证。不要寄存密码、密钥或其他高度敏感信息。
+过期内容在查询或下载时变为不可访问，并触发 D1 记录及 R2 对象删除。没有定时清理任务，未再次访问的过期内容不保证立即物理删除。
+
+访问码用于便捷分享，不是强认证。请勿寄存密码、密钥或其他高度敏感信息。

@@ -1,6 +1,5 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "../vendor/shadcn-tailwind-4.13.0.css";
 :root {
   --background: #f4f7fb;
   --foreground: #132038;
@@ -229,12 +228,6 @@ label em {
   color: #2460d3;
   margin-bottom: 5px;
 }
-.settings-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-top: 22px;
-}
 .submit {
   width: 100%;
   height: 48px;
@@ -269,23 +262,9 @@ label em {
   font-size: 26px;
   margin: 8px 0 10px;
 }
-.success > p:not(.eyebrow):not(.protected) {
+.success > p:not(.eyebrow) {
   color: #728097;
   font-size: 14px;
-}
-.share-box {
-  display: flex;
-  gap: 8px;
-  margin: 28px 0 13px;
-}
-.protected {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  color: #52647f;
-  font-size: 13px;
-  margin: 0 0 27px;
 }
 footer {
   text-align: center;
@@ -336,12 +315,6 @@ footer {
   .drop-card {
     padding: 20px;
     border-radius: 20px;
-  }
-  .settings-grid {
-    grid-template-columns: 1fr;
-  }
-  .share-box {
-    flex-direction: column;
   }
 }
 .pickup-page {
@@ -411,9 +384,6 @@ footer {
 .locked p {
   color: #718097;
   margin: 0 0 24px;
-}
-.locked input {
-  margin-bottom: 10px;
 }
 .content-label {
   display: flex;
