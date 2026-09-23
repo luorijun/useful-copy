@@ -26,6 +26,8 @@
     "db/**/*.ts",
     "vite.config.ts",
     "drizzle.config.ts",
+    "oxlint.config.ts",
+    "oxfmt.config.ts",
     "cloudflare-env.d.ts"
   ],
   "exclude": ["node_modules", "dist"]

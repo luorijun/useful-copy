@@ -16,7 +16,9 @@ export default function App() {
   return (
     <main className="pickup-page">
       <div className="pickup-shell">
-        <a href="/" className="back">返回首页</a>
+        <a href="/" className="back">
+          返回首页
+        </a>
         <div className="pickup-card">
           <div className="state">页面不存在</div>
         </div>

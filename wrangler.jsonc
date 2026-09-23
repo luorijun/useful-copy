@@ -5,20 +5,20 @@
   "compatibility_date": "2026-09-22",
   "assets": {
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/api/*"]
+    "run_worker_first": ["/api/*"],
   },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "useful-copy",
       "migrations_dir": "./drizzle",
-      "database_id": "00000000-0000-4000-8000-000000000000"
-    }
+      "database_id": "00000000-0000-4000-8000-000000000000",
+    },
   ],
   "r2_buckets": [
     {
       "binding": "BUCKET",
-      "bucket_name": "useful-copy"
-    }
-  ]
+      "bucket_name": "useful-copy",
+    },
+  ],
 }

@@ -6,6 +6,7 @@
 
 - Bun 1.4.2 或更新版本；项目基准版本为 1.4.2。
 - 本地工具通过 Bun 运行，Worker 通过 Cloudflare 的 workerd 运行。
+- Vite 8 使用 Oxc 转译与 Rolldown 打包，TypeScript 负责类型检查，Oxlint 和 Oxfmt 分别负责代码检查与格式化。Vite、Drizzle、Oxlint 和 Oxfmt 使用 TypeScript 配置。
 
 ## 本地开发
 
@@ -23,11 +24,14 @@ bun run dev
 ```sh
 bun run typecheck
 bun run lint
+bun run format --check
 bun run build
 bun run preview
 ```
 
 `preview` 预览已生成的构建结果，需先执行 `build`。
+
+执行 `bun run format` 统一代码格式，格式约定集中在 `oxfmt.config.ts`；生成的类型、锁文件和数据库快照不参与格式化。执行 `bun run lint --fix` 自动修复可安全修复的代码问题。
 
 ## 数据库
 
