@@ -1,12 +1,12 @@
 # useful-copy · 临时寄存
 
-通过六位访问码临时分享文本和文件。前端使用 React + Vite，API 运行在 Cloudflare Workers；D1 保存文本和元数据，R2 保存文件。
+通过六位访问码临时分享文本和文件。前端使用 Solid + Vite，API 运行在 Cloudflare Workers；D1 保存文本和元数据，R2 保存文件。
 
 ## 环境
 
 - Bun 1.4.2 或更新版本；项目基准版本为 1.4.2。
 - 本地工具通过 Bun 运行，Worker 通过 Cloudflare 的 workerd 运行。
-- Vite 8 使用 Oxc 转译与 Rolldown 打包，TypeScript 负责类型检查，Oxlint 和 Oxfmt 分别负责代码检查与格式化。Vite、Drizzle、Oxlint 和 Oxfmt 使用 TypeScript 配置。
+- Vite 8 使用 Oxc 转译与 Rolldown 打包，Solid 1 的 JSX 由官方插件通过 Babel 编译，TypeScript 负责类型检查，Oxlint 和 Oxfmt 分别负责代码检查与格式化。Vite、Drizzle、Oxlint 和 Oxfmt 使用 TypeScript 配置。
 
 ## 本地开发
 
@@ -67,7 +67,7 @@ bun run deploy
 ## 项目结构
 
 ```text
-src/                 React 页面与样式
+src/                 Solid 页面与样式
 worker/              Worker API 与存储操作
 components/ui/       页面使用的 UI 组件
 lib/                 访问码与通用工具
@@ -75,7 +75,7 @@ db/                  数据模型
 drizzle/             数据库迁移
 cloudflare-env.d.ts   Wrangler 生成的绑定与运行时类型
 wrangler.jsonc       Worker、D1、R2、静态资源配置
-vite.config.ts       Vite、React、Cloudflare 配置
+vite.config.ts       Vite、Solid、Cloudflare 配置
 ```
 
 变更 Worker 配置后执行 `bun run cf:typegen`，提交更新后的类型文件。

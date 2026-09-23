@@ -14,13 +14,13 @@ export default function App() {
   if (pathname === "/" || pathname === "") return <Home />;
 
   return (
-    <main className="pickup-page">
-      <div className="pickup-shell">
-        <a href="/" className="back">
+    <main class="pickup-page">
+      <div class="pickup-shell">
+        <a href="/" class="back">
           返回首页
         </a>
-        <div className="pickup-card">
-          <div className="state">页面不存在</div>
+        <div class="pickup-card">
+          <div class="state">页面不存在</div>
         </div>
       </div>
     </main>

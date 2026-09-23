@@ -1,89 +1,141 @@
-import * as React from "react";
-import { cva, type VariantProps } from "class-variance-authority";
-import { Tabs as TabsPrimitive } from "radix-ui";
+import {
+  createContext,
+  createUniqueId,
+  Show,
+  splitProps,
+  useContext,
+  type ComponentProps,
+  type JSX,
+} from "solid-js";
+import { cn } from "tailwind-variants";
 
-import { cn } from "@/lib/utils";
+type TabsProps = {
+  value: string;
+  onChange: (value: string) => void;
+  children: JSX.Element;
+};
+const Context = createContext<{
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+}>();
 
-function Tabs({
-  className,
-  orientation = "horizontal",
-  ...props
-}: React.ComponentProps<typeof TabsPrimitive.Root>) {
+function useTabs() {
+  const tabs = useContext(Context);
+  if (!tabs) throw new Error("Tab components must be inside Tabs");
+  return tabs;
+}
+
+export function Tabs(props: TabsProps) {
+  const id = createUniqueId();
   return (
-    <TabsPrimitive.Root
-      data-slot="tabs"
-      data-orientation={orientation}
-      orientation={orientation}
-      className={cn(
-        "group/tabs flex gap-2 data-[orientation=horizontal]:flex-col",
-        className,
+    <Context.Provider
+      value={{
+        id,
+        get value() {
+          return props.value;
+        },
+        onChange: (value) => props.onChange(value),
+      }}
+    >
+      <div class="flex flex-col gap-2">{props.children}</div>
+    </Context.Provider>
+  );
+}
+
+export function TabsList(
+  props: ComponentProps<"div"> & { "aria-label": string },
+) {
+  const [local, rest] = splitProps(props, ["class"]);
+  function navigate(event: KeyboardEvent) {
+    const list = event.currentTarget as HTMLDivElement;
+    const buttons = Array.from(
+      list.querySelectorAll<HTMLButtonElement>('[role="tab"]:not(:disabled)'),
+    );
+    const index = buttons.indexOf(document.activeElement as HTMLButtonElement);
+    if (index < 0) return;
+    let next: number;
+    switch (event.key) {
+      case "ArrowRight":
+        next = (index + 1) % buttons.length;
+        break;
+      case "ArrowLeft":
+        next = (index - 1 + buttons.length) % buttons.length;
+        break;
+      case "Home":
+        next = 0;
+        break;
+      case "End":
+        next = buttons.length - 1;
+        break;
+      default:
+        return;
+    }
+    event.preventDefault();
+    buttons[next].focus();
+    buttons[next].click();
+  }
+  return (
+    <div
+      {...rest}
+      role="tablist"
+      onKeyDown={navigate}
+      class={cn(
+        "inline-flex w-fit items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground",
+        local.class,
       )}
-      {...props}
     />
   );
 }
 
-const tabsListVariants = cva(
-  "group/tabs-list inline-flex w-fit items-center justify-center rounded-lg p-[3px] text-muted-foreground group-data-[orientation=horizontal]/tabs:h-9 group-data-[orientation=vertical]/tabs:h-fit group-data-[orientation=vertical]/tabs:flex-col data-[variant=line]:rounded-none",
-  {
-    variants: {
-      variant: {
-        default: "bg-muted",
-        line: "gap-1 bg-transparent",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  },
-);
-
-function TabsList({
-  className,
-  variant = "default",
-  ...props
-}: React.ComponentProps<typeof TabsPrimitive.List> &
-  VariantProps<typeof tabsListVariants>) {
+export function TabsTrigger(props: {
+  value: string;
+  class?: string;
+  children: JSX.Element;
+}) {
+  const tabs = useTabs();
+  const active = () => tabs.value === props.value;
   return (
-    <TabsPrimitive.List
-      data-slot="tabs-list"
-      data-variant={variant}
-      className={cn(tabsListVariants({ variant }), className)}
-      {...props}
-    />
-  );
-}
-
-function TabsTrigger({
-  className,
-  ...props
-}: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
-  return (
-    <TabsPrimitive.Trigger
-      data-slot="tabs-trigger"
-      className={cn(
-        "relative inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap text-foreground/60 transition-all group-data-[orientation=vertical]/tabs:w-full group-data-[orientation=vertical]/tabs:justify-start hover:text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 group-data-[variant=default]/tabs-list:data-[state=active]:shadow-sm group-data-[variant=line]/tabs-list:data-[state=active]:shadow-none dark:text-muted-foreground dark:hover:text-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        "group-data-[variant=line]/tabs-list:bg-transparent group-data-[variant=line]/tabs-list:data-[state=active]:bg-transparent dark:group-data-[variant=line]/tabs-list:data-[state=active]:border-transparent dark:group-data-[variant=line]/tabs-list:data-[state=active]:bg-transparent",
-        "data-[state=active]:bg-background data-[state=active]:text-foreground dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 dark:data-[state=active]:text-foreground",
-        "after:absolute after:bg-foreground after:opacity-0 after:transition-opacity group-data-[orientation=horizontal]/tabs:after:inset-x-0 group-data-[orientation=horizontal]/tabs:after:bottom-[-5px] group-data-[orientation=horizontal]/tabs:after:h-0.5 group-data-[orientation=vertical]/tabs:after:inset-y-0 group-data-[orientation=vertical]/tabs:after:-right-1 group-data-[orientation=vertical]/tabs:after:w-0.5 group-data-[variant=line]/tabs-list:data-[state=active]:after:opacity-100",
-        className,
+    <button
+      type="button"
+      role="tab"
+      id={tabs.id + "-tab-" + props.value}
+      aria-controls={tabs.id + "-panel-" + props.value}
+      aria-selected={active()}
+      tabIndex={active() ? 0 : -1}
+      onClick={() => tabs.onChange(props.value)}
+      class={cn(
+        "inline-flex h-full flex-1 items-center justify-center gap-2 rounded-md border border-transparent px-3 py-1 text-sm font-medium whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-ring [&_svg]:shrink-0",
+        active()
+          ? "bg-background text-foreground shadow-sm"
+          : "text-foreground/60 hover:text-foreground",
+        props.class,
       )}
-      {...props}
-    />
+    >
+      {props.children}
+    </button>
   );
 }
 
-function TabsContent({
-  className,
-  ...props
-}: React.ComponentProps<typeof TabsPrimitive.Content>) {
+export function TabsContent(props: {
+  value: string;
+  class?: string;
+  children: JSX.Element;
+}) {
+  const tabs = useTabs();
   return (
-    <TabsPrimitive.Content
-      data-slot="tabs-content"
-      className={cn("flex-1 outline-none", className)}
-      {...props}
-    />
+    <div
+      role="tabpanel"
+      id={tabs.id + "-panel-" + props.value}
+      aria-labelledby={tabs.id + "-tab-" + props.value}
+      hidden={tabs.value !== props.value}
+      tabIndex={0}
+      class={cn(
+        "flex-1 outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        props.class,
+      )}
+    >
+      <Show when={tabs.value === props.value}>{props.children}</Show>
+    </div>
   );
 }
-
-export { Tabs, TabsList, TabsTrigger, TabsContent, tabsListVariants };
