@@ -7,17 +7,17 @@
     "bun": ">=1.4.2"
   },
   "scripts": {
-    "dev": "bun --bun vite",
-    "build": "bun --bun vite build",
-    "preview": "bun --bun vite preview",
-    "deploy": "bun run build && bun --bun wrangler deploy",
-    "typecheck": "bun --bun tsc --noEmit",
-    "lint": "bun --bun oxlint --deny-warnings .",
-    "format": "bun --bun oxfmt .",
-    "db:generate": "bun --bun drizzle-kit generate",
-    "db:migrate": "bun --bun wrangler d1 migrations apply DB --local",
-    "db:migrate:remote": "bun --bun wrangler d1 migrations apply DB --remote",
-    "cf:typegen": "bun --bun wrangler types cloudflare-env.d.ts"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "wrangler preview",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint --deny-warnings .",
+    "format": "oxfmt .",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "wrangler d1 migrations apply DB --local",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
+    "cf:typegen": "wrangler types cloudflare-env.d.ts"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",

@@ -5,7 +5,7 @@
 ## 环境
 
 - Bun 1.4.2 或更新版本；项目基准版本为 1.4.2。
-- 本地工具通过 Bun 运行，Worker 通过 Cloudflare 的 workerd 运行。
+- `bunfig.toml` 统一指定脚本中的工具通过 Bun 运行，Worker 通过 Cloudflare 的 workerd 运行。
 - Vite 8 使用 Oxc 转译与 Rolldown 打包，Solid 1 的 JSX 由官方插件通过 Babel 编译，TypeScript 负责类型检查，Oxlint 和 Oxfmt 分别负责代码检查与格式化。Vite、Drizzle、Oxlint 和 Oxfmt 使用 TypeScript 配置。
 
 ## 本地开发
@@ -49,20 +49,21 @@ bun run db:migrate
 创建 Cloudflare 资源：
 
 ```sh
-bun --bun wrangler login
-bun --bun wrangler d1 create useful-copy
-bun --bun wrangler r2 bucket create useful-copy
+bun wrangler login
+bun wrangler d1 create useful-copy
+bun wrangler r2 bucket create useful-copy
 ```
 
 将真实的 D1 `database_id` 填入 `wrangler.jsonc`，确认 `DB` 和 `BUCKET` 绑定对应目标资源，然后执行：
 
 ```sh
 bun run cf:typegen
+bun run build
 bun run db:migrate:remote
 bun run deploy
 ```
 
-部署命令先构建，再上传 Worker 和静态资源。
+`build` 生成构建产物，`deploy` 只上传已构建的 Worker 和静态资源。Cloudflare 自动部署时，构建阶段执行 `bun run build`，部署阶段执行 `bun run db:migrate:remote && bun run deploy`，无需重复构建；首次发布前需先创建数据库。
 
 ## 项目结构
 
